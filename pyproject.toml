@@ -24,9 +24,10 @@ before-all = ""
 before-build = ""
 repair-wheel-command = ""
 
-test-command = ""
+test-command = "pytest"
+test-sources = ["tests", "pyproject.toml"]
 before-test = ""
-test-requires = []
+test-requires = ["pytest", "hypothesis"]
 test-extras = []
 
 container-engine = "docker"
@@ -56,3 +57,9 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 [tool.cibuildwheel.windows]
 
 [tool.cibuildwheel.pyodide]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config -v -r sxfE --color=yes --durations=10"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+filterwarnings = ["error"]

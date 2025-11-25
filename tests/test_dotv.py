@@ -1,10 +1,7 @@
-from __future__ import division
 from hypothesis import given, assume
-from math import sqrt, floor
 
 from blis_tests_common import *
 from blis.py import dotv
-from blis.cy import NO_CONJUGATE, CONJUGATE
 
 
 @given(

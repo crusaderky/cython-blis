@@ -128,6 +128,4 @@ jobs:
           python -m pip install -U -r requirements.txt
 
       - name: Run tests
-        shell: bash
-        run: |
-          python -m pytest --pyargs $MODULE_NAME -Werror
+        run: pytest
