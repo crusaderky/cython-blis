@@ -284,7 +284,7 @@ with chdir(root):
 
 setup(
     setup_requires=[
-        "cython>=3.0,<4.0",
+        "cython>=3.1,<4.0",
         "numpy>=2.0.0,<3.0.0",
     ],
     install_requires=[
@@ -326,11 +326,13 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: Free Threading :: 2 - Beta",
         "Topic :: Scientific/Engineering",
     ],
 )
