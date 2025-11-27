@@ -61,6 +61,12 @@ def find_in_path(name, path):
     return None
 
 
+def is_gil_enabled():
+    if sys.version_info < (3, 13):
+        return True
+    return sys._is_gil_enabled()
+
+
 # By subclassing build_extensions we have the actual compiler that will be used
 # which is really known only after finalize_options
 # http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
@@ -88,6 +94,13 @@ class build_ext_options:
             self.compiler.archiver = ["llvm-ar"]
             self.compiler.library_dirs.extend(library_dirs)
             self.compiler.include_dirs = include_dirs
+
+        # The official Windows free threaded Python installer doesn't set
+        # Py_GIL_DISABLED because its pyconfig.h is shared with the
+        # default build, so we need to define it here
+        # (see pypa/setuptools#4662).
+        if os.name == 'nt' and not is_gil_enabled():
+            self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
 
 class ExtensionBuilder(build_ext, build_ext_options):
