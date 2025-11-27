@@ -25,7 +25,7 @@ jobs:
   tests:
     name: Test
     strategy:
-      fail-fast: true
+      fail-fast: false  # DNM
       matrix:
         os:
           - ubuntu-latest  # x64
