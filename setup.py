@@ -72,7 +72,10 @@ def is_gil_enabled():
 # http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
 class ExtensionBuilder(build_ext):
     def build_extensions(self):
-        self.compiler.include_dirs.append(numpy.get_include())
+        if hasattr(self.compiler, "initialize"):
+            self.compiler.initialize()
+        self.compiler.platform = sys.platform[:6]
+        print("Build options", self.compiler.platform, self.compiler.compiler_type)
 
         print("===DBG=== start before")
         for k in dir(self.compiler):
@@ -84,13 +87,26 @@ class ExtensionBuilder(build_ext):
             print(f"{k} = {v}")
         print("===DBG=== stop before")
 
+        self.compiler.include_dirs.append(numpy.get_include())
+
         if self.compiler.compiler_type == "msvc":
+            # Replace msvc compiler with unix compiler
+            include_dirs = self.compiler.include_dirs[:]
+            library_dirs = self.compiler.library_dirs[:]
             llvm_path = locate_windows_llvm()
+
+            self.compiler = new_compiler(plat="nt", compiler="unix")
+            self.compiler.platform = "nt"
+            self.compiler.compiler_type = "msvc"
             self.compiler.compiler = [llvm_path]
+            self.compiler.compiler_so = [llvm_path]
+            self.compiler.preprocessor = [llvm_path]
             self.compiler.linker = [llvm_path, "-shared"]
             self.compiler.linker_so = [llvm_path, "-shared"]
-            self.compiler.linker_exe= [llvm_path, "-shared"]
+            self.compiler.linker_exe = [llvm_path, "-shared"]
             self.compiler.archiver = ["llvm-ar"]
+            self.compiler.library_dirs += library_dirs
+            self.compiler.include_dirs = include_dirs
 
             # The official Windows free threaded Python installer doesn't set
             # Py_GIL_DISABLED because its pyconfig.h is shared with the
