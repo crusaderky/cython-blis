@@ -101,11 +101,10 @@ class ExtensionBuilder(build_ext):
             self.compiler.compiler = [llvm_path]
             self.compiler.compiler_so = [llvm_path]
             self.compiler.preprocessor = [llvm_path]
-            self.compiler.linker = [llvm_path, "-shared"]
             self.compiler.linker_so = [llvm_path, "-shared"]
             self.compiler.linker_exe = [llvm_path, "-shared"]
             self.compiler.archiver = ["llvm-ar"]
-            self.compiler.library_dirs += library_dirs
+            self.compiler.library_dirs = library_dirs
             self.compiler.include_dirs = include_dirs
 
             # The official Windows free threaded Python installer doesn't set
