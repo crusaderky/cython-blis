@@ -15,7 +15,7 @@ import io
 import os.path
 import json
 import tempfile
-from setuptools.command.build_ext import build_ext, new_compiler
+from setuptools.command.build_ext import build_ext
 from Cython.Build import cythonize
 import subprocess
 import sys
@@ -67,33 +67,9 @@ def is_gil_enabled():
     return sys._is_gil_enabled()
 
 
-# By subclassing build_extensions we have the actual compiler that will be used
-# which is really known only after finalize_options
-# http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
-class build_ext_options:
-    def build_options(self):
-        if hasattr(self.compiler, "initialize"):
-            self.compiler.initialize()
-        self.compiler.platform = sys.platform[:6]
-        print("Build options", self.compiler.platform, self.compiler.compiler_type)
-
-        self.compiler.include_dirs = [numpy.get_include()] + self.compiler.include_dirs
-
-        if self.compiler.compiler_type == "msvc":
-            include_dirs = list(self.compiler.include_dirs)
-            library_dirs = list(self.compiler.library_dirs)
-            self.compiler = new_compiler(plat="nt", compiler="unix")
-            self.compiler.platform = "nt"
-            self.compiler.compiler_type = "msvc"
-            self.compiler.compiler = [locate_windows_llvm()]
-            self.compiler.compiler_so = list(self.compiler.compiler)
-            self.compiler.preprocessor = list(self.compiler.compiler)
-            self.compiler.linker = list(self.compiler.compiler) + ["-shared"]
-            self.compiler.linker_so = list(self.compiler.linker)
-            self.compiler.linker_exe = list(self.compiler.linker)
-            self.compiler.archiver = ["llvm-ar"]
-            self.compiler.library_dirs.extend(library_dirs)
-            self.compiler.include_dirs = include_dirs
+class ExtensionBuilder(build_ext):
+    def build_extensions(self):
+        self.compiler.include_dirs.append(numpy.get_include())
 
         # The official Windows free threaded Python installer doesn't set
         # Py_GIL_DISABLED because its pyconfig.h is shared with the
@@ -102,10 +78,6 @@ class build_ext_options:
         if os.name == 'nt' and not is_gil_enabled():
             self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
-
-class ExtensionBuilder(build_ext, build_ext_options):
-    def build_extensions(self):
-        build_ext_options.build_options(self)
         if sys.platform in ("msvc", "win32"):
             platform_name = "windows"
         elif sys.platform == "darwin":
@@ -135,7 +107,7 @@ class ExtensionBuilder(build_ext, build_ext_options):
                 os.path.join(INCLUDE, "%s-%s" % (platform_name, arch))
             )
             e.extra_objects = list(short_paths)
-        build_ext.build_extensions(self)
+        super().build_extensions()
         shutil.rmtree(short_dir)
 
     def get_arch_name(self, platform_name):
