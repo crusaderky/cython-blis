@@ -85,9 +85,11 @@ class ExtensionBuilder(build_ext):
         print("===DBG=== stop before")
 
         if self.compiler.compiler_type == "msvc":
-            self.compiler.compiler = [locate_windows_llvm()]
-            self.compiler.linker_so.append("-shared")
-            self.compiler.linker_exe.append("-shared")
+            llvm_path = locate_windows_llvm()
+            self.compiler.compiler = [llvm_path]
+            self.compiler.linker = [llvm_path, "-shared"]
+            self.compiler.linker_so = [llvm_path, "-shared"]
+            self.compiler.linker_exe= [llvm_path, "-shared"]
             self.compiler.archiver = ["llvm-ar"]
 
             # The official Windows free threaded Python installer doesn't set
