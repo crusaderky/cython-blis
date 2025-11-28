@@ -74,9 +74,18 @@ class ExtensionBuilder(build_ext):
     def build_extensions(self):
         self.compiler.include_dirs.append(numpy.get_include())
 
+        print("===DBG=== start before")
+        for k in dir(self.compiler):
+            if k.startswith("_"):
+                continue
+            v = getattr(self.compiler, k)
+            if callable(v):
+                continue
+            print(f"{k} = {v}")
+        print("===DBG=== stop before")
+
         if self.compiler.compiler_type == "msvc":
             self.compiler.compiler = [locate_windows_llvm()]
-            self.compiler.linker.append("-shared")
             self.compiler.linker_so.append("-shared")
             self.compiler.linker_exe.append("-shared")
             self.compiler.archiver = ["llvm-ar"]
@@ -88,7 +97,7 @@ class ExtensionBuilder(build_ext):
             if not is_gil_enabled():
                 self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
-        print("===DBG=== start")
+        print("===DBG=== start after")
         for k in dir(self.compiler):
             if k.startswith("_"):
                 continue
@@ -96,7 +105,7 @@ class ExtensionBuilder(build_ext):
             if callable(v):
                 continue
             print(f"{k} = {v}")
-        print("===DBG=== stop")
+        print("===DBG=== stop after")
 
         if sys.platform in ("msvc", "win32"):
             platform_name = "windows"
