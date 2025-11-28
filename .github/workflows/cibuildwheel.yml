@@ -31,6 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: ccache
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          create-symlink: true
+          # ccache is shared with tests workflow
+          key: ${{ matrix.os }}
+
       # See https://cibuildwheel.pypa.io/en/1.x/cpp_standards/
       - name: Setup MSVC on Windows x64
         if: matrix.os == 'windows-latest'
