@@ -25,7 +25,7 @@ jobs:
   tests:
     name: Test
     strategy:
-      fail-fast: true
+      fail-fast: false  # DNM
       matrix:
         os:
           - ubuntu-latest  # x64
@@ -34,41 +34,9 @@ jobs:
           - macos-latest  # ARM
           - windows-latest  # x64
           - windows-11-arm  # ARM
-        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python_version: ["3.14", "3.14t"]
         cc: ['']  # default: gcc on Linux; clang on Mac/Windows
         numpy-runtime: ['']  # default: latest version
-        include:
-          # Note: default compiler for Linux is gcc. cibuildwheel uses gcc.
-          # FIXME: clang crashes on ARM Linux
-          - os: ubuntu-latest
-            python_version: "3.10"
-            cc: clang
-          - os: ubuntu-latest
-            python_version: "3.14"
-            cc: clang
-          # Test oldest runtime version of NumPy.
-          # Note that we always use the latest available version for building.
-          - os: ubuntu-latest
-            python_version: "3.10"
-            numpy-runtime: "1.21.2"
-          - os: ubuntu-24.04-arm
-            python_version: "3.10"
-            numpy-runtime: "1.21.3"
-          - os: macos-15-intel
-            python_version: "3.10"
-            numpy-runtime: "1.21.3"
-          - os: macos-latest
-            python_version: "3.10"
-            numpy-runtime: "1.21.3"
-          - os: windows-latest
-            python_version: "3.10"
-            numpy-runtime: "1.21.3"
-          - os: windows-11-arm
-            python_version: "3.11"
-            numpy-runtime: "2.3.1"
-        exclude:
-          - os: windows-11-arm
-            python_version: "3.10"
 
     runs-on: ${{ matrix.os }}
 
@@ -174,3 +142,7 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+      - name: Run pytest-run-parallel
+        if: endsWith(matrix.python_version, 't')
+        run: pytest --parallel-threads 4

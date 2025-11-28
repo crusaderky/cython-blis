@@ -61,38 +61,69 @@ def find_in_path(name, path):
     return None
 
 
-# By subclassing build_extensions we have the actual compiler that will be used
+def is_gil_enabled():
+    if sys.version_info < (3, 13):
+        return True
+    return sys._is_gil_enabled()
+
+
+# By overriding build_extensions we have the actual compiler that will be used
 # which is really known only after finalize_options
 # http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
-class build_ext_options:
-    def build_options(self):
+class ExtensionBuilder(build_ext):
+    def build_extensions(self):
         if hasattr(self.compiler, "initialize"):
             self.compiler.initialize()
         self.compiler.platform = sys.platform[:6]
         print("Build options", self.compiler.platform, self.compiler.compiler_type)
 
-        self.compiler.include_dirs = [numpy.get_include()] + self.compiler.include_dirs
+        print("===DBG=== start before")
+        for k in dir(self.compiler):
+            if k.startswith("_"):
+                continue
+            v = getattr(self.compiler, k)
+            if callable(v):
+                continue
+            print(f"{k} = {v}")
+        print("===DBG=== stop before")
+
+        self.compiler.include_dirs.append(numpy.get_include())
 
         if self.compiler.compiler_type == "msvc":
-            include_dirs = list(self.compiler.include_dirs)
-            library_dirs = list(self.compiler.library_dirs)
+            # Replace msvc compiler with unix compiler
+            include_dirs = self.compiler.include_dirs[:]
+            library_dirs = self.compiler.library_dirs[:]
+            llvm_path = locate_windows_llvm()
+
             self.compiler = new_compiler(plat="nt", compiler="unix")
             self.compiler.platform = "nt"
             self.compiler.compiler_type = "msvc"
-            self.compiler.compiler = [locate_windows_llvm()]
-            self.compiler.compiler_so = list(self.compiler.compiler)
-            self.compiler.preprocessor = list(self.compiler.compiler)
-            self.compiler.linker = list(self.compiler.compiler) + ["-shared"]
-            self.compiler.linker_so = list(self.compiler.linker)
-            self.compiler.linker_exe = list(self.compiler.linker)
+            self.compiler.compiler = [llvm_path]
+            self.compiler.compiler_so = [llvm_path]
+            self.compiler.preprocessor = [llvm_path]
+            self.compiler.linker_so = [llvm_path, "-shared"]
+            self.compiler.linker_exe = [llvm_path, "-shared"]
             self.compiler.archiver = ["llvm-ar"]
-            self.compiler.library_dirs.extend(library_dirs)
+            self.compiler.library_dirs = library_dirs
             self.compiler.include_dirs = include_dirs
 
+            # The official Windows free threaded Python installer doesn't set
+            # Py_GIL_DISABLED because its pyconfig.h is shared with the
+            # default build, so we need to define it here
+            # (see pypa/setuptools#4662).
+            if not is_gil_enabled():
+                self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
-class ExtensionBuilder(build_ext, build_ext_options):
-    def build_extensions(self):
-        build_ext_options.build_options(self)
+        print("===DBG=== start after")
+        for k in dir(self.compiler):
+            if k.startswith("_"):
+                continue
+            v = getattr(self.compiler, k)
+            if callable(v):
+                continue
+            print(f"{k} = {v}")
+        print("===DBG=== stop after")
+
         if sys.platform in ("msvc", "win32"):
             platform_name = "windows"
         elif sys.platform == "darwin":
@@ -122,7 +153,8 @@ class ExtensionBuilder(build_ext, build_ext_options):
                 os.path.join(INCLUDE, "%s-%s" % (platform_name, arch))
             )
             e.extra_objects = list(short_paths)
-        build_ext.build_extensions(self)
+
+        super().build_extensions()
         shutil.rmtree(short_dir)
 
     def get_arch_name(self, platform_name):
@@ -284,7 +316,7 @@ with chdir(root):
 
 setup(
     setup_requires=[
-        "cython>=3.0,<4.0",
+        "cython>=3.1,<4.0",
         "numpy>=2.0.0,<3.0.0",
     ],
     install_requires=[
@@ -326,11 +358,13 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: Free Threading :: 2 - Beta",
         "Topic :: Scientific/Engineering",
     ],
 )
