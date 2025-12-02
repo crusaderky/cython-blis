@@ -53,4 +53,4 @@ jobs:
         env:
           # Reference: https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
           TSAN_OPTIONS: "halt_on_error=0 verbosity=2 suppressions=tsan_suppressions.txt"
-        run: pytest --parallel-threads 4
+        run: pytest -s --parallel-threads 4
