@@ -51,5 +51,5 @@ jobs:
 
       - name: Run pytest-run-parallel
         env:
-          TSAN_OPTIONS: "halt_on_error=0"
+          TSAN_OPTIONS: "halt_on_error=0 verbosity=2"
         run: pytest --parallel-threads 4
