@@ -40,6 +40,9 @@ jobs:
       - name: Install wheel
         run: python -m pip install dist/*.whl
 
+      - name: Delete source directory
+        run: rm -rf blis
+
       - name: Test import
         run: python -c "import blis" -Werror
 
