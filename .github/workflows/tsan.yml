@@ -1,0 +1,52 @@
+name: Test with TSAN
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+  pull_request:
+    branches: ["*"]
+    paths-ignore:
+      - "*.md"
+  workflow_dispatch: # allows you to trigger manually
+
+# When this workflow is queued, automatically cancel any previous running
+# or pending jobs from the same branch
+concurrency:
+  group: tsan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  TSAN:
+    runs-on: ubuntu-latest
+    container:
+        image: ghcr.io/nascheme/numpy-tsan:3.14t
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: python -m pip install build wheel cython setuptools
+
+      - name: Build wheel
+        env:
+          BLIS_SANITIZE_THREAD: "1"  # Impacts flame-blis modules; see setup.py
+          CFLAGS: "-Db_sanitize=thread"  # Impacts Cython modules
+        # Build without isolation to use TSAN-enabled NumPy from the container
+        run: python -m build --wheel --no-isolation
+
+      - name: Install wheel
+        run: python -m pip install dist/*.whl
+
+      - name: Test import
+        run: python -c "import blis" -Werror
+
+      - name: Install test requirements
+        run: python -m pip install -r requirements.txt
+
+      - name: Run pytest-run-parallel
+        env:
+          TSAN_OPTIONS: "halt_on_error=0"
+        run: pytest --parallel-threads 4
