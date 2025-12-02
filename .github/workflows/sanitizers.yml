@@ -31,11 +31,11 @@ jobs:
         run: python -m pip install build wheel cython setuptools
 
       - name: Build wheel
-        env:
+        run: | 
           # See setup.py for special handling in flame-blis modules
-          CFLAGS: "-fsanitize=thread"
-        # Build without isolation to use TSAN-enabled NumPy from the container
-        run: python -m build --wheel --no-isolation
+          export CFLAGS="$CFLAGS -fsanitize=thread"
+          # Build without isolation to use TSAN-enabled NumPy from the container
+          python -m build --wheel --no-isolation
 
       - name: Install wheel
         run: python -m pip install dist/*.whl
