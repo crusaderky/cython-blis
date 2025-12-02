@@ -32,8 +32,8 @@ jobs:
 
       - name: Build wheel
         env:
-          BLIS_SANITIZE: "thread"  # Impacts flame-blis modules; see setup.py
-          CFLAGS: "-Db_sanitize=thread"  # Impacts Cython modules
+          # See setup.py for special handling in flame-blis modules
+          CFLAGS: "-fsanitize=thread"
         # Build without isolation to use TSAN-enabled NumPy from the container
         run: python -m build --wheel --no-isolation
 

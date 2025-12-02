@@ -254,12 +254,12 @@ class ExtensionBuilder(build_ext):
                 # spec["flags"].append(
                 #    "-D__cpuid=__cpuid_function"
                 # )
-                if "BLIS_SANITIZE" in os.environ:
-                    # Enable TSAN compilation flags.
-                    # Note that this only impacts flame-blis modules; in order to impact
-                    # Cython modules too you also need to define 
-                    # CFLAGS="-Db_sanitize=<thread|address|...>"
-                    spec["flags"].append("-Db_sanitize=" + os.environ["BLIS_SANITIZE"])
+                if "-fsanitize=thread" in os.environ.get("CFLAGS", "").split():
+                    # Enable TSAN compilation flag for flame-blis modules.
+                    # Ignore other environmental CFLAGS; for everything else
+                    # use the jsonl specs instead.
+                    # Cython modules use CFLAGS directly instead.
+                    spec["flags"].append("-fsanitize=thread")
 
                 objects.append(self.build_object(env=env, **spec))
         return objects
