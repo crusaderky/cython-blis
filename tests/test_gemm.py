@@ -48,8 +48,8 @@ def test_incompatible_shape():
 
 
 @given(
-    ndarrays(min_len=10, max_len=100, min_val=-100.0, max_val=100.0, dtype="float64"),
-    ndarrays(min_len=10, max_len=100, min_val=-100.0, max_val=100.0, dtype="float64"),
+    ndarrays(min_len=1, max_len=100, min_val=-100.0, max_val=100.0, dtype="float64"),
+    ndarrays(min_len=1, max_len=100, min_val=-100.0, max_val=100.0, dtype="float64"),
     integers(min_value=2, max_value=1000),
     integers(min_value=2, max_value=1000),
     integers(min_value=2, max_value=1000),
@@ -64,12 +64,12 @@ def test_memoryview_double_notrans(A, B, a_rows, a_cols, out_cols):
     assume(C.size >= 1)
     gemm(A, B, out=C)
     numpy_result = A.dot(B)
-    assert_allclose(numpy_result, C, atol=1e-3, rtol=1e-3)
+    assert_allclose(numpy_result, C, atol=1e-9, rtol=1e-9)
 
 
 @given(
-    ndarrays(min_len=10, max_len=100, min_val=-100.0, max_val=100.0, dtype="float32"),
-    ndarrays(min_len=10, max_len=100, min_val=-100.0, max_val=100.0, dtype="float32"),
+    ndarrays(min_len=1, max_len=100, min_val=-100.0, max_val=100.0, dtype="float32"),
+    ndarrays(min_len=1, max_len=100, min_val=-100.0, max_val=100.0, dtype="float32"),
     integers(min_value=2, max_value=1000),
     integers(min_value=2, max_value=1000),
     integers(min_value=2, max_value=1000),
@@ -84,4 +84,4 @@ def test_memoryview_float_notrans(A, B, a_rows, a_cols, out_cols):
     assume(C.size >= 1)
     gemm(A, B, out=C)
     numpy_result = A.dot(B)
-    assert_allclose(numpy_result, C, atol=1e-3, rtol=1e-3)
+    assert_allclose(numpy_result, C, atol=1e-2, rtol=1e-4)
