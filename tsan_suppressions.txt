@@ -3,3 +3,5 @@
 
 # https://github.com/numpy/numpy/issues/30085
 race:mt19937_seed
+# https://github.com/cython/cython/issues/7383
+race:__Pyx__CyFunction_SetClassObj
