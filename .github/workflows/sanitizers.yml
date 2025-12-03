@@ -52,5 +52,5 @@ jobs:
       - name: Run pytest-run-parallel
         env:
           # Reference: https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
-          TSAN_OPTIONS: "halt_on_error=0 verbosity=2 suppressions=tsan_suppressions.txt"
+          TSAN_OPTIONS: "halt_on_error=0 suppressions=tsan_suppressions.txt"
         run: pytest -s --parallel-threads 4

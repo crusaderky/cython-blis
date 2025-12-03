@@ -1,3 +1,5 @@
 # This file contains suppressions for the TSAN tool
-#
 # Reference: https://github.com/google/sanitizers/wiki/ThreadSanitizerSuppressions
+
+# https://github.com/numpy/numpy/issues/30085
+race:mt19937_seed
