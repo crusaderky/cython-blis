@@ -17,7 +17,7 @@ def test_memoryview_double_noconj(A, B):
         A = A[: len(B)]
     numpy_result = A.dot(B)
     result = dotv(A, B)
-    assert_allclose([numpy_result], result, atol=1e-9, rtol=1e-9)
+    assert_allclose(result, numpy_result, atol=1e-9, rtol=1e-9)
 
 
 @given(
@@ -31,4 +31,4 @@ def test_memoryview_float_noconj(A, B):
         A = A[: len(B)]
     numpy_result = A.dot(B)
     result = dotv(A, B)
-    assert_allclose([numpy_result], result, atol=1e-2, rtol=1e-4)
+    assert_allclose(result, numpy_result, atol=1e-2, rtol=1e-4)
