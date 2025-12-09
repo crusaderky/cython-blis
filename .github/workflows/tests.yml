@@ -76,6 +76,14 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v6
 
+      - name: ccache
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          create-symlink: true
+          # ccache is shared with cibuildwheel workflow for default cc
+          key: ${{ matrix.os }}${{ matrix.cc }}
+
       - name: Configure Python version
         uses: actions/setup-python@v6
         with:
